@@ -7,7 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -25,16 +27,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_DATE = "date";
     private static final String KEY_DESCRIPTION = "description";
 
-
     // Category Table
     private static final String TABLE_CATEGORIES = "categories";
     private static final String KEY_CATEGORY_NAME = "name";
-    private static final String KEY_CATEGORY_TYPE = "type"; // Add this column
-
-    private static final String CREATE_CATEGORIES_TABLE = "CREATE TABLE "
-            + TABLE_CATEGORIES + "(" + KEY_CATEGORY_NAME
-            + " TEXT NOT NULL, " + KEY_CATEGORY_TYPE
-            + " TEXT NOT NULL, PRIMARY KEY (" + KEY_CATEGORY_NAME + ", " + KEY_CATEGORY_TYPE + "))";
+    private static final String KEY_CATEGORY_TYPE = "type";
 
     // Database creation sql statement
     private static final String CREATE_TRANSACTIONS_TABLE = "CREATE TABLE "
@@ -45,6 +41,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + " TEXT NOT NULL," + KEY_DATE
             + " INTEGER NOT NULL," + KEY_DESCRIPTION + " TEXT);";
 
+    private static final String CREATE_CATEGORIES_TABLE = "CREATE TABLE "
+            + TABLE_CATEGORIES + "(" + KEY_CATEGORY_NAME
+            + " TEXT NOT NULL, " + KEY_CATEGORY_TYPE
+            + " TEXT NOT NULL, PRIMARY KEY (" + KEY_CATEGORY_NAME + ", " + KEY_CATEGORY_TYPE + "))";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -53,7 +54,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TRANSACTIONS_TABLE);
         db.execSQL(CREATE_CATEGORIES_TABLE);
-        // Initialize with some default categories if you want
         insertDefaultCategories(db);
     }
 
@@ -102,11 +102,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return transaction;
     }
 
-    public List<Transaction> getAllTransactions() {
+    public List<Transaction> getTransactionsByMonthYear(long monthYear) {
         List<Transaction> transactionList = new ArrayList<>();
-        String selectQuery = "SELECT  * FROM " + TABLE_TRANSACTIONS + " ORDER BY " + KEY_DATE + " DESC";
-
         SQLiteDatabase db = this.getWritableDatabase();
+        String selectQuery = "SELECT  * FROM " + TABLE_TRANSACTIONS;
+
+        if (monthYear != -1) {
+            // Calculate the start and end of the selected month
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(monthYear);
+            calendar.set(Calendar.DAY_OF_MONTH, 1); // Start of the month
+            long startDate = calendar.getTimeInMillis();
+
+            calendar.add(Calendar.MONTH, 1);
+            calendar.add(Calendar.DAY_OF_MONTH, -1); // End of the month
+            long endDate = calendar.getTimeInMillis();
+
+            selectQuery += " WHERE " + KEY_DATE + " BETWEEN " + startDate + " AND " + endDate;
+        }
+        selectQuery += " ORDER BY " + KEY_DATE + " DESC";
+
         Cursor cursor = db.rawQuery(selectQuery, null);
 
         // looping through all rows and adding to list
@@ -159,6 +174,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return id;
     }
+
     public List<String> getAllCategories(Transaction.TransactionType type) {
         List<String> categoryList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -177,11 +193,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return categoryList;
     }
 
-    public void deleteCategory(String categoryName) {
+    public void deleteCategory(String categoryName, Transaction.TransactionType type) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // Also, consider updating transactions that use this category to a default or null
-        db.delete(TABLE_CATEGORIES, KEY_CATEGORY_NAME + " = ?",
-                new String[]{categoryName});
+        db.delete(TABLE_CATEGORIES, KEY_CATEGORY_NAME + " = ? AND " + KEY_CATEGORY_TYPE + " = ?",
+                new String[]{categoryName, type.toString()});
         db.close();
     }
 
@@ -215,3 +230,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_CATEGORIES, null, values);
     }
 }
+
