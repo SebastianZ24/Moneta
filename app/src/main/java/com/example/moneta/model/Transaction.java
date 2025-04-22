@@ -1,4 +1,4 @@
-package com.example.moneta;
+package com.example.moneta.model;
 
 public class Transaction {
     private long id;

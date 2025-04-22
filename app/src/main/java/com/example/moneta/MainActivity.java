@@ -19,6 +19,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle; // <<< NEW Import
 import androidx.appcompat.widget.Toolbar; // <<< NEW Import
 import androidx.core.view.GravityCompat; // <<< NEW Import
 import androidx.drawerlayout.widget.DrawerLayout; // <<< NEW Import
+
+import com.example.moneta.model.Transaction;
 import com.google.android.material.navigation.NavigationView; // <<< NEW Import
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -127,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements
             navigationView.setCheckedItem(R.id.nav_transactions);
         }
     }
-    // <<< NEW METHOD: Add onResume >>>
     @Override
     protected void onResume() {
         super.onResume();
@@ -150,6 +151,9 @@ public class MainActivity extends AppCompatActivity implements
         } else if (id == R.id.nav_manage_categories) {
             // Start ManageCategoriesActivity
             Intent intent = new Intent(MainActivity.this, ManageCategoriesActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_investments) { // <<< ADD THIS CASE
+            Intent intent = new Intent(MainActivity.this, InvestmentsActivity.class);
             startActivity(intent);
         }
         // Add more else if blocks here for future items (Reports, Settings etc.)

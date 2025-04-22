@@ -1,14 +1,11 @@
 package com.example.moneta;
 
-import android.database.sqlite.SQLiteDatabase; // Keep this if you still use it directly, otherwise remove
 import android.os.Bundle;
 import android.view.MenuItem; // Import MenuItem
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView; // Keep if using the title TextView, otherwise remove
 import android.widget.Toast;
 
 import androidx.annotation.NonNull; // Import NonNull
@@ -18,8 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.example.moneta.model.Transaction;
+
 import java.util.List;
-import java.util.stream.Collectors; // Optional: For checking duplicates more concisely
 
 public class ManageCategoriesActivity extends AppCompatActivity implements CategoryAdapter.OnCategoryDeleteClickListener {
 
