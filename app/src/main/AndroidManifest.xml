@@ -22,9 +22,17 @@
             </intent-filter>
         </activity>
         <activity android:name=".AddEditTransactionActivity"
-            android:exported="false"/>
-        <activity android:name=".ManageCategoriesActivity"
-            android:exported="false"/>
+            android:label="Add/Edit Transaction"
+            android:parentActivityName=".MainActivity"> <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value=".MainActivity" />
+        </activity>
+        <activity
+            android:name=".ManageCategoriesActivity"
+            android:label="Manage Categories" android:parentActivityName=".MainActivity"> <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value=".MainActivity" />
+        </activity>
     </application>
 
 </manifest>
