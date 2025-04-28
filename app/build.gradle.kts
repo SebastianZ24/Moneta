@@ -42,8 +42,6 @@ dependencies {
     // Retrofit for networking
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")// Use latest version
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0") // Gson converter for JSON parsing
-    //implementation ("com.squareup.retrofit2:converter-gson:2.5.0")
-// Gson (usually included with converter, but good to be explicit)
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-    //implementation ("com.google.code.gson:gson:2.10.1") // Use latest version
 }

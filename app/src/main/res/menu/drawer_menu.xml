@@ -8,10 +8,14 @@
             android:id="@+id/nav_transactions"
             android:icon="@android:drawable/ic_menu_agenda" android:title="Transactions" />
         <item
+            android:id="@+id/nav_stats"
+            android:icon="@android:drawable/ic_menu_view" android:title="Statistics" />
+        <item
             android:id="@+id/nav_manage_categories"
             android:icon="@android:drawable/ic_menu_manage" android:title="Manage Categories" />
         <item
             android:id="@+id/nav_investments"
             android:icon="@android:drawable/ic_menu_sort_by_size" android:title="Investments" />
+
     </group>
 </menu>

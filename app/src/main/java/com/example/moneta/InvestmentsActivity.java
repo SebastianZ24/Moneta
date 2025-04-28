@@ -45,7 +45,7 @@ public class InvestmentsActivity extends AppCompatActivity implements
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private final String API_KEY = "YOUR_ALPHA_VANTAGE_API_KEY"; // Replace!
+    private final String API_KEY = "JIEML1MHVOKASSZV"; // Replace!
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

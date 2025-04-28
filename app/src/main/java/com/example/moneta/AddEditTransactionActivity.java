@@ -35,7 +35,6 @@ public class AddEditTransactionActivity extends AppCompatActivity {
     private EditText descriptionEditText;
     private Button dateButton;
     private Button saveButton;
-    // private Button manageCategoriesButton; // <<< REMOVE this variable
 
     private Calendar calendar = Calendar.getInstance();
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());

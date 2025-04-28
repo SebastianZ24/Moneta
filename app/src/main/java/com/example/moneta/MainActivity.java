@@ -156,6 +156,10 @@ public class MainActivity extends AppCompatActivity implements
             Intent intent = new Intent(MainActivity.this, InvestmentsActivity.class);
             startActivity(intent);
         }
+        else if (id == R.id.nav_stats) { // <<< ADD THIS CASE
+            Intent intent = new Intent(MainActivity.this, StatsActivity.class);
+            startActivity(intent);
+        }
         // Add more else if blocks here for future items (Reports, Settings etc.)
 
         // Close the drawer after selection

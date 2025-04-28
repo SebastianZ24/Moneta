@@ -454,5 +454,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return rowsAffected;
     }
+    // --- NEW: Method to get aggregated stats by category ---
+    public List<CategoryStat> getCategoryStats(long startDate, long endDateExclusive, Transaction.TransactionType type) {
+        List<CategoryStat> statsList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
 
+        // SQL query to sum amounts by category within the date range and for the specific type
+        String query = "SELECT " + KEY_TRANS_CATEGORY + ", SUM(" + KEY_TRANS_AMOUNT + ") as total " +
+                "FROM " + TABLE_TRANSACTIONS + " " +
+                "WHERE " + KEY_TRANS_TYPE + " = ? AND " +
+                KEY_TRANS_DATE + " >= ? AND " +
+                KEY_TRANS_DATE + " < ? " + // Use < for exclusive end date
+                "GROUP BY " + KEY_TRANS_CATEGORY + " " +
+                "HAVING total > 0 " + // Only include categories with actual amounts
+                "ORDER BY total DESC"; // Order by amount descending
+
+        // Arguments for the query placeholders
+        String[] selectionArgs = {
+                type.toString(),
+                String.valueOf(startDate),
+                String.valueOf(endDateExclusive)
+        };
+
+        Log.d(TAG, "Executing stats query: " + query + " with args: " + type + ", " + startDate + ", " + endDateExclusive);
+
+        try {
+            cursor = db.rawQuery(query, selectionArgs);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    String categoryName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_TRANS_CATEGORY));
+                    double totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
+                    statsList.add(new CategoryStat(categoryName, totalAmount));
+                } while (cursor.moveToNext());
+            } else {
+                Log.d(TAG, "No stats data found for the given criteria.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting category stats", e);
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null && db.isOpen()) db.close();
+        }
+        Log.d(TAG, "Returning " + statsList.size() + " category stats.");
+        return statsList;
+    }
 } // End of DatabaseHelper
