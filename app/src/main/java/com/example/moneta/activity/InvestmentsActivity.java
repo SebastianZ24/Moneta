@@ -1,4 +1,4 @@
-package com.example.moneta;
+package com.example.moneta.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
-import android.app.AlertDialog; // Import AlertDialog
+import android.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +17,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.moneta.investapi.AlphaVantageService;
+import com.example.moneta.DatabaseHelper;
+import com.example.moneta.investapi.GlobalQuote;
+import com.example.moneta.investapi.QuoteResponse;
+import com.example.moneta.R;
+import com.example.moneta.investapi.RetrofitClient;
+import com.example.moneta.adapter.InvestmentHoldingAdapter;
+import com.example.moneta.model.InvestmentHolding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -27,8 +35,11 @@ import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Response;
 
+import android.widget.TextView;
 
-// --- Implement listener interfaces ---
+import androidx.core.content.ContextCompat;
+import java.util.Locale;
+
 public class InvestmentsActivity extends AppCompatActivity implements
         InvestmentHoldingAdapter.OnInvestmentClickListener,
         InvestmentHoldingAdapter.OnInvestmentLongClickListener {
@@ -39,13 +50,16 @@ public class InvestmentsActivity extends AppCompatActivity implements
     private FloatingActionButton addInvestmentFab;
     private DatabaseHelper dbHelper;
     private InvestmentHoldingAdapter adapter;
-    // Use different request code for edit vs add if needed, or just check result
+    private TextView totalInvestedTextView;
+    private TextView currentValueTextView;
+    private TextView profitLossTextView;
+
     private static final int ADD_EDIT_INVESTMENT_REQUEST = 2;
     private static final String TAG = "InvestmentsActivity";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private final String API_KEY = "JIEML1MHVOKASSZV"; // Replace!
+    private final String API_KEY = "JIEML1MHVOKASSZV";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +70,9 @@ public class InvestmentsActivity extends AppCompatActivity implements
         recyclerView = findViewById(R.id.investments_recyclerview);
         refreshButton = findViewById(R.id.refresh_investments_button);
         addInvestmentFab = findViewById(R.id.add_investment_fab);
+        totalInvestedTextView = findViewById(R.id.summary_total_invested_textview);
+        currentValueTextView = findViewById(R.id.summary_current_value_textview);
+        profitLossTextView = findViewById(R.id.summary_profit_loss_textview);
 
         dbHelper = new DatabaseHelper(this);
 
@@ -67,67 +84,58 @@ public class InvestmentsActivity extends AppCompatActivity implements
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new InvestmentHoldingAdapter(new ArrayList<>());
-        // --- Set listeners on the adapter ---
         adapter.setOnInvestmentClickListener(this);
         adapter.setOnInvestmentLongClickListener(this);
-        // --- End set listeners ---
         recyclerView.setAdapter(adapter);
 
         loadInvestmentHoldings();
 
         refreshButton.setOnClickListener(v -> {
-            if (API_KEY.equals("YOUR_ALPHA_VANTAGE_API_KEY") || API_KEY.isEmpty()) {
-                Toast.makeText(this, "Please set your Alpha Vantage API_KEY in InvestmentsActivity.java", Toast.LENGTH_LONG).show();
+            if (API_KEY.isEmpty()) {
+                Toast.makeText(this, "Please set your Alpha Vantage API_KEY", Toast.LENGTH_LONG).show();
                 return;
             }
             refreshInvestmentPrices();
         });
 
         addInvestmentFab.setOnClickListener(v -> {
-            // Start AddInvestmentActivity without passing an ID for adding
             Intent intent = new Intent(InvestmentsActivity.this, AddInvestmentActivity.class);
             startActivityForResult(intent, ADD_EDIT_INVESTMENT_REQUEST);
         });
     }
 
-    // --- Implementation of OnInvestmentClickListener ---
     @Override
     public void onInvestmentClick(InvestmentHolding holding) {
-        // Start AddInvestmentActivity in edit mode, passing the ID
         Intent intent = new Intent(InvestmentsActivity.this, AddInvestmentActivity.class);
         intent.putExtra("investment_id", holding.getId());
         startActivityForResult(intent, ADD_EDIT_INVESTMENT_REQUEST);
     }
-    // --- End implementation ---
 
-    // --- Implementation of OnInvestmentLongClickListener ---
     @Override
     public void onInvestmentLongClick(InvestmentHolding holding) {
-        // Show delete confirmation dialog
         new AlertDialog.Builder(this)
                 .setTitle("Delete Investment")
                 .setMessage("Are you sure you want to delete this holding?\n(" + holding.getTickerSymbol() + " - " + holding.getQuantity() + " shares)")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    deleteHolding(holding.getId()); // Call delete method
+                    deleteHolding(holding.getId());
                 })
                 .setNegativeButton("No", null)
                 .show();
     }
-    // --- End implementation ---
 
-    // --- NEW: Method to handle deletion ---
     private void deleteHolding(long id) {
-        // Background thread recommended!
+        Log.d(TAG, "Attempting to delete investment ID: " + id);
         executor.execute(() -> {
             dbHelper.deleteInvestmentHolding(id);
-            // Post back to main thread to reload list and show toast
+            List<InvestmentHolding> updatedHoldings = dbHelper.getAllInvestmentHoldings();
             mainHandler.post(() -> {
+                Log.i(TAG, "Deletion successful, reloading list and summary.");
                 Toast.makeText(InvestmentsActivity.this, "Investment deleted", Toast.LENGTH_SHORT).show();
-                loadInvestmentHoldings(); // Refresh the list
+                adapter.setHoldings(updatedHoldings);
+                updateInvestmentSummary(updatedHoldings);
             });
         });
     }
-    // --- End delete method ---
 
 
     private void refreshInvestmentPrices() {
@@ -144,6 +152,7 @@ public class InvestmentsActivity extends AppCompatActivity implements
                 mainHandler.post(() -> {
                     refreshButton.setEnabled(true);
                     Toast.makeText(InvestmentsActivity.this, "No investments to refresh.", Toast.LENGTH_SHORT).show();
+                    updateInvestmentSummary(new ArrayList<>());
                 });
                 return;
             }
@@ -181,7 +190,7 @@ public class InvestmentsActivity extends AppCompatActivity implements
                     } else {
                         String errorBodyStr = "Code: " + response.code();
                         if (response.errorBody() != null) {
-                            try { errorBodyStr = response.errorBody().string(); } catch (Exception e) { /* Ignore */ }
+                            try { errorBodyStr = response.errorBody().string(); } catch (Exception e) {  }
                         }
                         Log.e(TAG, "API call failed for " + holding.getTickerSymbol() + ": " + errorBodyStr);
                         failedSymbols.add(holding.getTickerSymbol() + " (API Error)");
@@ -196,7 +205,7 @@ public class InvestmentsActivity extends AppCompatActivity implements
 
                 if (currentHoldings.indexOf(holding) < totalCount - 1) {
                     try {
-                        Thread.sleep(13000); // Adjust sleep time based on API limits
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         Log.e(TAG, "Thread sleep interrupted", e);
@@ -204,7 +213,9 @@ public class InvestmentsActivity extends AppCompatActivity implements
                         break;
                     }
                 }
-            } // End loop
+            }
+
+            List<InvestmentHolding> updatedHoldings = dbHelper.getAllInvestmentHoldings();
 
             mainHandler.post(() -> {
                 refreshButton.setEnabled(true);
@@ -215,32 +226,70 @@ public class InvestmentsActivity extends AppCompatActivity implements
                     summaryMsg = "Refreshed " + successCount[0] + "/" + totalCount + ". Failed: " + String.join(", ", failedSymbols);
                 }
                 Toast.makeText(InvestmentsActivity.this, summaryMsg, Toast.LENGTH_LONG).show();
-                loadInvestmentHoldings(); // Reload data from DB
+
+                adapter.setHoldings(updatedHoldings);
+                updateInvestmentSummary(updatedHoldings);
             });
         });
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        // Reload list if item was added OR edited
         if (requestCode == ADD_EDIT_INVESTMENT_REQUEST && resultCode == RESULT_OK) {
+            Log.d(TAG, "Returned from Add/Edit, reloading holdings.");
             loadInvestmentHoldings();
         }
     }
 
     private void loadInvestmentHoldings() {
+        Log.d(TAG, "Loading investment holdings...");
         executor.execute(() -> {
             List<InvestmentHolding> holdings = dbHelper.getAllInvestmentHoldings();
+            Log.d(TAG, "Loaded " + holdings.size() + " holdings from DB.");
             mainHandler.post(() -> {
                 if (adapter != null) {
                     adapter.setHoldings(holdings);
+                    updateInvestmentSummary(holdings);
+                    Log.d(TAG, "Adapter and summary updated.");
+                } else {
+                    Log.e(TAG, "Adapter is null when trying to update holdings.");
                 }
             });
         });
     }
 
+    private void updateInvestmentSummary(List<InvestmentHolding> holdings) {
+        double totalInvested = 0;
+        double currentValue = 0;
+
+        if (holdings != null) {
+            for (InvestmentHolding holding : holdings) {
+                totalInvested += holding.getTotalCost();
+                if (holding.getCurrentPrice() > 0) {
+                    currentValue += holding.getCurrentValue();
+                } else {
+                    currentValue += holding.getTotalCost();
+                }
+            }
+        }
+
+        double profitLoss = currentValue - totalInvested;
+
+        totalInvestedTextView.setText(String.format(Locale.getDefault(), "%.2f", totalInvested));
+        currentValueTextView.setText(String.format(Locale.getDefault(), "%.2f", currentValue));
+        profitLossTextView.setText(String.format(Locale.getDefault(), "%+.2f", profitLoss));
+
+        int profitLossColor;
+        if (profitLoss > 0) {
+            profitLossColor = ContextCompat.getColor(this, android.R.color.holo_green_dark);
+        } else if (profitLoss < 0) {
+            profitLossColor = ContextCompat.getColor(this, android.R.color.holo_red_dark);
+        } else {
+            profitLossColor = ContextCompat.getColor(this, android.R.color.tab_indicator_text);
+        }
+        profitLossTextView.setTextColor(profitLossColor);
+    }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -257,3 +306,4 @@ public class InvestmentsActivity extends AppCompatActivity implements
         executor.shutdown();
     }
 }
+

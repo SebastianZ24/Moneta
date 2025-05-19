@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.moneta"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,7 +16,7 @@
         android:theme="@style/Theme.Moneta"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,37 +24,37 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AddEditTransactionActivity"
+        <activity android:name=".activity.AddEditTransactionActivity"
             android:label="Add/Edit Transaction"
-            android:parentActivityName=".MainActivity"> <meta-data
+            android:parentActivityName=".activity.MainActivity"> <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value=".MainActivity" />
+            android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".ManageCategoriesActivity"
-            android:label="Manage Categories" android:parentActivityName=".MainActivity"> <meta-data
+            android:name=".activity.ManageCategoriesActivity"
+            android:label="Manage Categories" android:parentActivityName=".activity.MainActivity"> <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value=".MainActivity" />
+            android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".InvestmentsActivity"
-            android:label="Manage Categories" android:parentActivityName=".MainActivity"> <meta-data
+            android:name=".activity.InvestmentsActivity"
+            android:label="Manage Categories" android:parentActivityName=".activity.MainActivity"> <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value=".MainActivity" />
+            android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".AddInvestmentActivity"
-            android:label="Manage Categories" android:parentActivityName=".MainActivity"> <meta-data
+            android:name=".activity.AddInvestmentActivity"
+            android:label="Manage Categories" android:parentActivityName=".activity.MainActivity"> <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value=".MainActivity" />
+            android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".StatsActivity"
+            android:name=".activity.StatsActivity"
             android:label="Statistics"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
     </application>
 

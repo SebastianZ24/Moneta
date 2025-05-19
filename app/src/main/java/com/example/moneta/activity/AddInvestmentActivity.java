@@ -1,18 +1,10 @@
-package com.example.moneta;
+package com.example.moneta.activity;
 
 import android.app.DatePickerDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
@@ -20,36 +12,34 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.moneta.DatabaseHelper;
+import com.example.moneta.R;
+import com.example.moneta.model.InvestmentHolding;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 public class AddInvestmentActivity extends AppCompatActivity {
 
-    // UI Elements
     private Toolbar toolbar;
     private EditText symbolEditText, quantityEditText, priceEditText, nameEditText;
     private Button dateButton, saveButton;
 
-    // Helpers and Data
     private DatabaseHelper dbHelper;
     private Calendar calendar = Calendar.getInstance();
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private static final String TAG = "AddInvestmentActivity";
 
-    // State Variables
     private boolean isEditing = false;
     private long editingInvestmentId = -1;
     private InvestmentHolding existingHolding = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_investment);
 
-        // Initialize Views
         toolbar = findViewById(R.id.toolbar_add_investment);
         symbolEditText = findViewById(R.id.add_inv_symbol_edittext);
         quantityEditText = findViewById(R.id.add_inv_quantity_edittext);
@@ -93,21 +83,12 @@ public class AddInvestmentActivity extends AppCompatActivity {
         existingHolding = dbHelper.getInvestmentHolding(editingInvestmentId);
         if (existingHolding != null) {
             symbolEditText.setText(existingHolding.getTickerSymbol());
-
-            // --- REMOVE OR COMMENT OUT THESE LINES TO UNLOCK ---
-            // symbolEditText.setEnabled(false);
-            // symbolEditText.setFocusable(false);
-            // symbolEditText.setFocusableInTouchMode(false);
-            // --- END OF REMOVAL ---
-
             quantityEditText.setText(String.format(Locale.US, "%.2f", existingHolding.getQuantity()));
             priceEditText.setText(String.format(Locale.US, "%.2f", existingHolding.getPurchasePrice()));
             nameEditText.setText(existingHolding.getCompanyName());
-
             calendar.setTimeInMillis(existingHolding.getPurchaseDate());
             dateButton.setText(dateFormatter.format(calendar.getTime()));
-
-            saveButton.setText("Update Investment");
+            saveButton.setText(R.string.update_investment);
         } else {
             Log.e(TAG, "Error loading investment data for ID: " + editingInvestmentId);
             Toast.makeText(this, "Error loading investment data.", Toast.LENGTH_SHORT).show();
@@ -133,21 +114,17 @@ public class AddInvestmentActivity extends AppCompatActivity {
     }
 
     private void saveOrUpdateInvestment() {
-        // Always read the symbol, even when editing
         String symbol = symbolEditText.getText().toString().trim().toUpperCase();
         String quantityStr = quantityEditText.getText().toString().trim();
         String priceStr = priceEditText.getText().toString().trim();
         String name = nameEditText.getText().toString().trim();
         long purchaseDate = calendar.getTimeInMillis();
 
-        // --- Input Validation ---
         boolean valid = true;
-        // Symbol required always now if editing is allowed
         if (symbol.isEmpty()) {
             symbolEditText.setError("Symbol is required");
             valid = false;
         }
-        // Quantity required and must be positive
         double quantity = 0;
         if (quantityStr.isEmpty()) {
             quantityEditText.setError("Quantity is required");
@@ -164,7 +141,6 @@ public class AddInvestmentActivity extends AppCompatActivity {
                 valid = false;
             }
         }
-        // Price required and must be positive
         double price = 0;
         if (priceStr.isEmpty()) {
             priceEditText.setError("Purchase Price is required");
@@ -172,7 +148,7 @@ public class AddInvestmentActivity extends AppCompatActivity {
         } else {
             try {
                 price = Double.parseDouble(priceStr);
-                if (price < 0) { // Enforce positive price
+                if (price < 0) {
                     priceEditText.setError("Price must be positive");
                     valid = false;
                 }
@@ -181,26 +157,22 @@ public class AddInvestmentActivity extends AppCompatActivity {
                 valid = false;
             }
         }
-
         if (!valid) {
             Log.w(TAG, "Validation failed.");
             return;
         }
-        // --- End Validation ---
 
         try {
             boolean success = false;
-            // Background thread recommended!
             if (isEditing && existingHolding != null) {
                 Log.d(TAG, "Attempting to update investment ID: " + existingHolding.getId());
-                // Update fields including the potentially edited symbol
-                existingHolding.setTickerSymbol(symbol); // <<< UPDATE SYMBOL
+                existingHolding.setTickerSymbol(symbol);
                 existingHolding.setCompanyName(name);
                 existingHolding.setQuantity(quantity);
                 existingHolding.setPurchasePrice(price);
                 existingHolding.setPurchaseDate(purchaseDate);
 
-                int rowsAffected = dbHelper.updateInvestmentHolding(existingHolding); // Ensure DB helper updates symbol
+                int rowsAffected = dbHelper.updateInvestmentHolding(existingHolding);
                 if (rowsAffected > 0) {
                     Log.i(TAG, "Investment updated successfully.");
                     Toast.makeText(this, "Investment updated!", Toast.LENGTH_SHORT).show();
@@ -210,7 +182,6 @@ public class AddInvestmentActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error updating investment.", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                // Add new holding
                 Log.d(TAG, "Attempting to add new investment: " + symbol);
                 InvestmentHolding newHolding = new InvestmentHolding(0, symbol, name, quantity, price, purchaseDate, price);
                 long newId = dbHelper.addInvestmentHolding(newHolding);

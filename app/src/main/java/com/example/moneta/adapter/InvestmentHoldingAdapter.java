@@ -1,6 +1,5 @@
-package com.example.moneta;
+package com.example.moneta.adapter;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,28 +9,26 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.moneta.R;
+import com.example.moneta.model.InvestmentHolding;
+
 import java.util.List;
 import java.util.Locale;
 
 public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHoldingAdapter.InvestmentViewHolder> {
 
     private List<InvestmentHolding> holdingList;
-    // Add listener variables
     private OnInvestmentClickListener clickListener;
     private OnInvestmentLongClickListener longClickListener;
 
-    // Constructor
     public InvestmentHoldingAdapter(List<InvestmentHolding> holdingList) {
         this.holdingList = holdingList;
     }
 
-    // Method to update the data in the adapter
     public void setHoldings(List<InvestmentHolding> holdings) {
         this.holdingList = holdings;
-        notifyDataSetChanged(); // Consider using DiffUtil later
+        notifyDataSetChanged();
     }
-
-    // --- Setters for listeners ---
     public void setOnInvestmentClickListener(OnInvestmentClickListener listener) {
         this.clickListener = listener;
     }
@@ -39,7 +36,6 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
     public void setOnInvestmentLongClickListener(OnInvestmentLongClickListener listener) {
         this.longClickListener = listener;
     }
-    // --- End Setters ---
 
     @NonNull
     @Override
@@ -51,11 +47,8 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
 
     @Override
     public void onBindViewHolder(@NonNull InvestmentViewHolder holder, int position) {
-        if (holdingList == null) {
-            return;
-        }
+        if (holdingList == null) return;
         InvestmentHolding holding = holdingList.get(position);
-        // Pass listeners to bind method
         holder.bind(holding, clickListener, longClickListener);
     }
 
@@ -64,7 +57,6 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
         return holdingList != null ? holdingList.size() : 0;
     }
 
-    // --- ViewHolder ---
     public static class InvestmentViewHolder extends RecyclerView.ViewHolder {
         TextView symbolTextView;
         TextView currentValueTextView;
@@ -79,7 +71,6 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
             profitLossTextView = itemView.findViewById(R.id.investment_profit_loss_textview);
         }
 
-        // Modified bind method to include listeners
         public void bind(final InvestmentHolding holding, final OnInvestmentClickListener clickListener, final OnInvestmentLongClickListener longClickListener) {
             if (holding == null) return;
 
@@ -88,7 +79,6 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
                     holding.getQuantity(), holding.getPurchasePrice());
             quantityPriceTextView.setText(qtyPriceStr);
 
-            // Handle valid vs invalid/stale price display
             if (holding.getCurrentPrice() > 0) {
                 currentValueTextView.setText(String.format(Locale.getDefault(), "%.2f", holding.getCurrentValue()));
                 double profitLoss = holding.getProfitLoss();
@@ -114,35 +104,30 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
                 profitLossTextView.setTextColor(staleColor);
             }
 
-            // --- Set Click Listeners on the item view ---
             if (clickListener != null) {
                 itemView.setOnClickListener(v -> {
                     if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                        // Use the 'holding' object passed into bind()
                         clickListener.onInvestmentClick(holding);
                     }
                 });
             } else {
-                itemView.setOnClickListener(null); // Important to clear if no listener
+                itemView.setOnClickListener(null);
             }
 
             if (longClickListener != null) {
                 itemView.setOnLongClickListener(v -> {
                     if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                        // Use the 'holding' object passed into bind()
                         longClickListener.onInvestmentLongClick(holding);
-                        return true; // Consume the long click
+                        return true;
                     }
                     return false;
                 });
             } else {
-                itemView.setOnLongClickListener(null); // Important to clear if no listener
+                itemView.setOnLongClickListener(null);
             }
-            // --- End Set Click Listeners ---
         }
     }
 
-    // --- Listener Interfaces ---
     public interface OnInvestmentClickListener {
         void onInvestmentClick(InvestmentHolding holding);
     }
@@ -150,5 +135,4 @@ public class InvestmentHoldingAdapter extends RecyclerView.Adapter<InvestmentHol
     public interface OnInvestmentLongClickListener {
         void onInvestmentLongClick(InvestmentHolding holding);
     }
-    // --- End Listener Interfaces ---
 }

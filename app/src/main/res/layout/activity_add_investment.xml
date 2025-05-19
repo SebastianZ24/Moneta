@@ -28,7 +28,7 @@
                 android:id="@+id/add_inv_symbol_edittext"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Ticker Symbol (e.g., AAPL)"
+                android:hint="@string/ticker_symbol_e_g_aapl"
                 android:inputType="textCapCharacters"
                 android:minHeight="48dp"/>
 
@@ -37,7 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Quantity"
+                android:hint="@string/quantity"
                 android:inputType="numberDecimal"
                 android:minHeight="48dp"/>
 
@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Purchase Price (per share)"
+                android:hint="@string/purchase_price_per_share"
                 android:inputType="numberDecimal"
                 android:minHeight="48dp"/>
 
@@ -57,14 +57,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="start|center_vertical"
-                android:text="Select Purchase Date" />
+                android:text="@string/select_purchase_date" />
 
             <EditText
                 android:id="@+id/add_inv_company_name_edittext"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Company Name (Optional)"
+                android:hint="@string/company_name_optional"
                 android:inputType="textCapWords"
                 android:minHeight="48dp"/>
 
@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Save Investment"/>
+                android:text="@string/save_investment"/>
 
         </LinearLayout>
     </ScrollView>

@@ -1,16 +1,13 @@
-package com.example.moneta;
+package com.example.moneta.model;
 
 public class InvestmentHolding {
     private long id;
-    private String tickerSymbol; // e.g., "AAPL", "GOOGL"
-    private String companyName;  // Optional, can be fetched later or entered manually
-    private double quantity;     // Number of shares/units owned
-    private double purchasePrice; // Price per share/unit at purchase
-    private long purchaseDate;   // Milliseconds since epoch
-    private double currentPrice; // Last fetched price per share/unit (initially maybe 0 or purchasePrice)
-    // You might add purchaseCommission, notes, etc. later
-
-    // Constructor (consider one without ID for adding new)
+    private String tickerSymbol;
+    private String companyName;
+    private double quantity;
+    private double purchasePrice;
+    private long purchaseDate;
+    private double currentPrice;
     public InvestmentHolding(long id, String tickerSymbol, String companyName, double quantity, double purchasePrice, long purchaseDate, double currentPrice) {
         this.id = id;
         this.tickerSymbol = tickerSymbol;
@@ -21,7 +18,6 @@ public class InvestmentHolding {
         this.currentPrice = currentPrice;
     }
 
-    // --- Getters and Setters for all fields ---
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
     public String getTickerSymbol() { return tickerSymbol; }
@@ -37,10 +33,8 @@ public class InvestmentHolding {
     public double getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(double currentPrice) { this.currentPrice = currentPrice; }
 
-    // --- Calculated Properties (Example) ---
     public double getTotalCost() {
         return quantity * purchasePrice;
-        // Add commission later if needed
     }
 
     public double getCurrentValue() {
@@ -53,7 +47,7 @@ public class InvestmentHolding {
 
     public double getProfitLossPercent() {
         double cost = getTotalCost();
-        if (cost == 0) return 0; // Avoid division by zero
+        if (cost == 0) return 0;
         return (getProfitLoss() / cost) * 100.0;
     }
 }

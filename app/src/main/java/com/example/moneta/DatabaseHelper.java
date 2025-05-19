@@ -1,26 +1,25 @@
 package com.example.moneta;
 
+import com.example.moneta.model.CategoryStat;
+import com.example.moneta.model.InvestmentHolding;
 import com.example.moneta.model.Transaction;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log; // Import Log
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "moneta.db";
-    // Increment version if schema changes
-    private static final int DATABASE_VERSION = 2; // <<< INCREMENTED VERSION
-    private static final String TAG = "DatabaseHelper"; // For logging
+    private static final int DATABASE_VERSION = 2;
+    private static final String TAG = "DatabaseHelper";
 
-    // Table name - Transactions
     private static final String TABLE_TRANSACTIONS = "transactions";
     private static final String KEY_TRANS_ID = "id";
     private static final String KEY_TRANS_AMOUNT = "amount";
@@ -29,12 +28,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_TRANS_DATE = "date";
     private static final String KEY_TRANS_DESCRIPTION = "description";
 
-    // Category Table
     private static final String TABLE_CATEGORIES = "categories";
     private static final String KEY_CAT_NAME = "name";
     private static final String KEY_CAT_TYPE = "type";
 
-    // Investment Table Constants
     private static final String TABLE_INVESTMENTS = "investments";
     private static final String KEY_INV_ID = "id";
     private static final String KEY_INV_SYMBOL = "symbol";
@@ -44,7 +41,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_INV_PURCHASE_DATE = "purchase_date";
     private static final String KEY_INV_CURRENT_PRICE = "current_price";
 
-    // --- Create Statements ---
     private static final String CREATE_TRANSACTIONS_TABLE = "CREATE TABLE "
             + TABLE_TRANSACTIONS + "(" + KEY_TRANS_ID
             + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_TRANS_AMOUNT
@@ -86,17 +82,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
-        // Basic upgrade policy: drop old tables and recreate
-        // For production apps, implement data migration logic here
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_INVESTMENTS);
         onCreate(db);
     }
 
-    // ========================================================================
-    // Transaction CRUD Operations (Keep existing methods)
-    // ========================================================================
     public long addTransaction(Transaction transaction) {
         SQLiteDatabase db = null;
         long id = -1;
@@ -149,18 +140,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<Transaction> getTransactionsByMonthYear(long monthStartTime) {
         List<Transaction> transactionList = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase(); // Use readable
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
         String selectQuery = "SELECT  * FROM " + TABLE_TRANSACTIONS;
 
         if (monthStartTime != -1) {
-            // Calculate the end of the selected month
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(monthStartTime); // Should be start of month
-            calendar.add(Calendar.MONTH, 1); // Move to start of next month
+            calendar.setTimeInMillis(monthStartTime);
+            calendar.add(Calendar.MONTH, 1);
             long endTimeExclusive = calendar.getTimeInMillis();
-
-            // Use >= start and < end for accurate month range
             selectQuery += " WHERE " + KEY_TRANS_DATE + " >= " + monthStartTime +
                     " AND " + KEY_TRANS_DATE + " < " + endTimeExclusive;
         }
@@ -225,9 +213,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ========================================================================
-    // Category CRUD Operations (Keep existing methods)
-    // ========================================================================
     public long addCategory(String categoryName, Transaction.TransactionType type) {
         SQLiteDatabase db = null;
         long id = -1;
@@ -236,7 +221,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(KEY_CAT_NAME, categoryName);
             values.put(KEY_CAT_TYPE, type.toString());
-            // Use insertWithOnConflict to handle potential duplicate primary keys gracefully
             id = db.insertWithOnConflict(TABLE_CATEGORIES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
             if (id == -1) {
                 Log.w(TAG, "Category already exists or error adding: " + categoryName + " (" + type + ")");
@@ -286,21 +270,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void insertDefaultCategories(SQLiteDatabase db) {
-        // Use a single ContentValues object
         ContentValues values = new ContentValues();
 
-        // Define default categories
         String[] incomeCategories = {"Salary", "Other Income"};
         String[] expenseCategories = {"Rent", "Food", "Utilities", "Entertainment", "Transport"};
 
-        // Insert Income categories
         values.put(KEY_CAT_TYPE, Transaction.TransactionType.INCOME.toString());
         for (String cat : incomeCategories) {
             values.put(KEY_CAT_NAME, cat);
             db.insertWithOnConflict(TABLE_CATEGORIES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
         }
 
-        // Insert Expense categories
         values.put(KEY_CAT_TYPE, Transaction.TransactionType.EXPENSE.toString());
         for (String cat : expenseCategories) {
             values.put(KEY_CAT_NAME, cat);
@@ -308,11 +288,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         Log.i(TAG, "Inserted default categories.");
     }
-
-
-    // ========================================================================
-    // Investment CRUD Operations
-    // ========================================================================
 
     public long addInvestmentHolding(InvestmentHolding holding) {
         SQLiteDatabase db = null;
@@ -325,7 +300,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_INV_QUANTITY, holding.getQuantity());
             values.put(KEY_INV_PURCHASE_PRICE, holding.getPurchasePrice());
             values.put(KEY_INV_PURCHASE_DATE, holding.getPurchaseDate());
-            // Store initial current price, often same as purchase price initially
             values.put(KEY_INV_CURRENT_PRICE, holding.getCurrentPrice());
             id = db.insert(TABLE_INVESTMENTS, null, values);
         } catch (Exception e) {
@@ -341,7 +315,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         InvestmentHolding holding = null;
         try {
-            cursor = db.query(TABLE_INVESTMENTS, null, // Select all columns
+            cursor = db.query(TABLE_INVESTMENTS, null,
                     KEY_INV_ID + "=?", new String[]{String.valueOf(id)},
                     null, null, null, null);
 
@@ -397,20 +371,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return holdingList;
     }
 
-    // --- NEW: Update Investment Holding ---
     public int updateInvestmentHolding(InvestmentHolding holding) {
         SQLiteDatabase db = null;
         int rowsAffected = 0;
         try {
             db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
-            // Include symbol in the update now
-            values.put(KEY_INV_SYMBOL, holding.getTickerSymbol()); // <<< ADDED
+            values.put(KEY_INV_SYMBOL, holding.getTickerSymbol());
             values.put(KEY_INV_COMPANY_NAME, holding.getCompanyName());
             values.put(KEY_INV_QUANTITY, holding.getQuantity());
             values.put(KEY_INV_PURCHASE_PRICE, holding.getPurchasePrice());
             values.put(KEY_INV_PURCHASE_DATE, holding.getPurchaseDate());
-            // Current price is updated separately
 
             rowsAffected = db.update(TABLE_INVESTMENTS, values, KEY_INV_ID + " = ?",
                     new String[]{String.valueOf(holding.getId())});
@@ -422,7 +393,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowsAffected;
     }
 
-    // --- NEW: Delete Investment Holding ---
     public void deleteInvestmentHolding(long id) {
         SQLiteDatabase db = null;
         try {
@@ -454,23 +424,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return rowsAffected;
     }
-    // --- NEW: Method to get aggregated stats by category ---
+
     public List<CategoryStat> getCategoryStats(long startDate, long endDateExclusive, Transaction.TransactionType type) {
         List<CategoryStat> statsList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
 
-        // SQL query to sum amounts by category within the date range and for the specific type
         String query = "SELECT " + KEY_TRANS_CATEGORY + ", SUM(" + KEY_TRANS_AMOUNT + ") as total " +
                 "FROM " + TABLE_TRANSACTIONS + " " +
                 "WHERE " + KEY_TRANS_TYPE + " = ? AND " +
                 KEY_TRANS_DATE + " >= ? AND " +
-                KEY_TRANS_DATE + " < ? " + // Use < for exclusive end date
+                KEY_TRANS_DATE + " < ? " +
                 "GROUP BY " + KEY_TRANS_CATEGORY + " " +
-                "HAVING total > 0 " + // Only include categories with actual amounts
-                "ORDER BY total DESC"; // Order by amount descending
+                "HAVING total > 0 " +
+                "ORDER BY total DESC";
 
-        // Arguments for the query placeholders
         String[] selectionArgs = {
                 type.toString(),
                 String.valueOf(startDate),
@@ -499,4 +467,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "Returning " + statsList.size() + " category stats.");
         return statsList;
     }
-} // End of DatabaseHelper
+}

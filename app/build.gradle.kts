@@ -39,9 +39,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    // Retrofit for networking
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")// Use latest version
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0") // Gson converter for JSON parsing
-    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
-
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    testImplementation ("junit:junit:4.13.2")
 }

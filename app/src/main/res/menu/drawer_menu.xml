@@ -6,16 +6,16 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_transactions"
-            android:icon="@android:drawable/ic_menu_agenda" android:title="Transactions" />
+            android:icon="@android:drawable/ic_menu_agenda" android:title="@string/transactions" />
         <item
             android:id="@+id/nav_stats"
-            android:icon="@android:drawable/ic_menu_view" android:title="Statistics" />
+            android:icon="@android:drawable/ic_menu_view" android:title="@string/statistics" />
         <item
             android:id="@+id/nav_manage_categories"
-            android:icon="@android:drawable/ic_menu_manage" android:title="Manage Categories" />
+            android:icon="@android:drawable/ic_menu_manage" android:title="@string/manage_categories" />
         <item
             android:id="@+id/nav_investments"
-            android:icon="@android:drawable/ic_menu_sort_by_size" android:title="Investments" />
+            android:icon="@android:drawable/ic_menu_sort_by_size" android:title="@string/investments" />
 
     </group>
 </menu>

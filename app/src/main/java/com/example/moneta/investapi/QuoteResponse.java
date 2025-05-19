@@ -1,8 +1,7 @@
-package com.example.moneta;
+package com.example.moneta.investapi;
 
 import com.google.gson.annotations.SerializedName;
 
-// Outer response object
 public class QuoteResponse {
     @SerializedName("Global Quote")
     private GlobalQuote globalQuote;

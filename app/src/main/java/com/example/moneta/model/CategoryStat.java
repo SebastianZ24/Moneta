@@ -1,6 +1,5 @@
-package com.example.moneta;
+package com.example.moneta.model;
 
-// Simple class to hold aggregated category statistics
 public class CategoryStat {
     private String categoryName;
     private double totalAmount;
@@ -18,7 +17,6 @@ public class CategoryStat {
         return totalAmount;
     }
 
-    // Optional: Override toString for debugging
     @Override
     public String toString() {
         return "CategoryStat{" +

@@ -5,7 +5,7 @@ public class Transaction {
     private double amount;
     private TransactionType type;
     private String category;
-    private long date; // Store as milliseconds since epoch
+    private long date;
     private String description;
 
     public enum TransactionType {
@@ -21,7 +21,6 @@ public class Transaction {
         this.description = description;
     }
 
-    // Getters and setters for all fields
     public long getId() {
         return id;
     }
